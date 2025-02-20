@@ -76,7 +76,7 @@ export class AuthService {
 
 ### PASO 3. GUARDS
 
-#### en src/core/guards
+#### en src/core/guards/auth
 
 **Servicios que controlan el acceso a las rutas de una aplicación Ejemplo:**
 
@@ -111,7 +111,7 @@ export const authGuard: CanActivateFn = (route, state) => {
 
 ### PASO 4. INTERCEPTORES
 
-#### en src/core/interceptores
+#### en src/core/interceptores/auth
 
 **Clases que permiten manipular las peticiones y respuestas HTTP de una aplicación**
 
