@@ -133,7 +133,7 @@ export const authGuard: CanActivateFn = (route, state) => {
 #### en src/core/interceptores/auth
 
 ```
-ng g interceptor core/interfaces/auth
+ng g interceptor core/interceptores/auth
 ```
 
 **Clases que permiten manipular las peticiones y respuestas HTTP de una aplicación**
