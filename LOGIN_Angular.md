@@ -112,7 +112,23 @@ export const authGuard: CanActivateFn = (route, state) => {
 };
 ```
 
-### PASO 4. INTERCEPTORES
+### PASO 4: HABILITAR EN LAS RUTAS LOS GUARDS
+**Ejemplo**
+```
+  {
+    path: 'admin',
+    component:AppLayout, //esto es para el menu
+    children:[
+      {
+        path:'',
+        loadChildren: ()=>import("./admin/admin.module").then(a=>a.AdminModule)
+      }
+    ],
+    canActivate:[authGuard] ///aqui es donde se habilita
+  }
+```
+
+### PASO 5. INTERCEPTORES
 
 #### en src/core/interceptores/auth
 
@@ -163,7 +179,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
 };
 ```
 
-### PASO 5: HABILITAR LOS INTERCEPTORES
+### PASO 6: HABILITAR LOS INTERCEPTORES
 
 **Habilitar en app.config.ts principal**
 
@@ -177,21 +193,6 @@ provideHttpClient(withInterceptors([authInterceptor])),
 
 ```
 
-### PASO 6: HABILITAR EN LAS RUTAS LOS GUARDS
-**Ejemplo**
-```
-  {
-    path: 'admin',
-    component:AppLayout, //esto es para el menu
-    children:[
-      {
-        path:'',
-        loadChildren: ()=>import("./admin/admin.module").then(a=>a.AdminModule)
-      }
-    ],
-    canActivate:[authGuard] ///aqui es donde se habilita
-  }
-```
 
 ### PASO 7: COMPONENTE DE LOGIN
 
