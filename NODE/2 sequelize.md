@@ -34,3 +34,11 @@ module.exports = {
 ```
 npx sequelize-cli init
 ```
+
+## 6. SUBIR A GIT
+***No te olvides que #.gitignore" para que no se suba todo el proyecto***
+
+```
+dist
+node_modules
+```
