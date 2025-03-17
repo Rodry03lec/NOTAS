@@ -42,3 +42,14 @@ npx sequelize-cli init
 dist
 node_modules
 ```
+
+## 7. GENERAR MIGRACIONES
+#### Generar un modelo + migraciones
+```
+npx sequelize-cli model:generate --name User --attributes nombre:string,email:string,password:string
+```
+
+## 8. Migrar la base de datos
+```
+npx sequelize-cli db:migrate
+```
