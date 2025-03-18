@@ -53,3 +53,8 @@ npx sequelize-cli model:generate --name User --attributes nombre:string,email:st
 ```
 npx sequelize-cli db:migrate
 ```
+
+## 9. Revertir Migraciones
+```
+npx sequelize-cli db:migrate:undo
+```
