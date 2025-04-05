@@ -1,0 +1,6 @@
+// instalar en el propio debian
+
+sudo apt update
+sudo apt install postgis postgresql-client
+
+shp2pgsql -I -s 4326 /home/rodrigo/Descargas/CPV2024/departamentos_ds_5050.shp departamentos | psql -h localhost -p 5433 -U postgres -d bd_proyecto
