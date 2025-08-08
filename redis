@@ -1,0 +1,45 @@
+import express from "express";
+import axios from "axios";
+import responseTime from 'response-time';
+import { createClient } from "redis";
+
+const app = express();
+
+const client = createClient({
+  socket: {
+    host: '127.0.0.1',
+    port: 6379
+  }
+});
+
+app.use(responseTime());
+
+app.get("/caracteres", async (req, res) => {
+    try {
+        const replica_guardada = await client.get('caracteres');
+
+        if (replica_guardada) {
+            return res.json(JSON.parse(replica_guardada));
+        }
+
+        const { data } = await axios.get('https://rickandmortyapi.com/api/character');
+
+        // Guardar en Redis por 2 minutos
+        await client.set('caracteres', JSON.stringify(data), {
+            EX: 120 // TTL en segundos
+        });
+
+        return res.json(data);
+    } catch (err) {
+        console.error(' Error:', err);
+        return res.status(500).json({ error: 'Ocurrió un error al procesar la solicitud' });
+    }
+});
+
+const main = async () => {
+    await client.connect();
+    app.listen(3000);
+    console.log(" Servidor iniciado en el puerto 3000");
+};
+
+main();
