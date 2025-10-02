@@ -29,4 +29,3 @@ nest generate module admin/usuario --no-spec
 nest generate controller admin/usuario --no-spec
 nest generate service admin/usuario --no-spec
 ```
-```
