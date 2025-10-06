@@ -29,3 +29,21 @@ nest generate module admin/usuario --no-spec
 nest generate controller admin/usuario --no-spec
 nest generate service admin/usuario --no-spec
 ```
+
+## Para verificar
+###
+```
+Para la instalación:
+
+npm i --save class-validator class-transformer
+
+Para el uso de PartialType instalar lo siguiente
+
+npm i @nestjs/mapped-types
+
+
+Para encriptar contraseñas
+npm install bcrypt
+npm install --save-dev @types/bcrypt
+
+```
