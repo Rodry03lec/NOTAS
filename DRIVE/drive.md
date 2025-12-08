@@ -7,7 +7,7 @@ sudo apt install yt-dlp
 ```
 1Z4Cv5aXGme8ffgqNREn7ZmULQ0S5dQJ8
 ```
-## vamos por la direccion IP
+## vamos por la direccion URL
 ```
 yt-dlp "https://drive.google.com/uc?id=1Z4Cv5aXGme8ffgqNREn7ZmULQ0S5dQJ8&export=download"
 ```
