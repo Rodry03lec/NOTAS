@@ -17,3 +17,8 @@ npm install zustand
 ```
 npm install axios
 ```
+
+### Lucide Iconos: https://lucide.dev/guide/packages/lucide-react
+```
+pnpm add lucide-react
+```
