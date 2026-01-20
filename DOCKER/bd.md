@@ -91,3 +91,14 @@ docker compose up -d
 ```
 docker compose down -v
 ```
+
+### Eliminar todos los volumenes puede eliminar uno por uno pero
+### Tener cuidado
+```
+docker volume prune
+```
+
+### Para que docker quede como recien instalado
+```
+docker system prune -a --volumes
+```
