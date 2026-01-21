@@ -94,9 +94,9 @@ CMD ["tail", "-f", "/dev/null"]
 
 ### -> Para crear los comandos para verificar cada una
 ```
-# Instalar laravel
-docker compose -f docker-compose.inicial.yml run --rm angular-instalar 
 # Instalar angular
+docker compose -f docker-compose.inicial.yml run --rm angular-instalar 
+# Instalar laravel 
 docker compose -f docker-compose.inicial.yml run --rm laravel-instalar 
 
 # Limpiar los contenedores temporales
@@ -316,4 +316,7 @@ docker exec -it php_dev bash
 
 docker exec -it angular-dev bash
 ```
+## Limpieza ocacional para que no haya muchas imagenes por ahi
+```
+docker image prune
 ```
