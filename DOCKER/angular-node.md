@@ -76,6 +76,12 @@ app.listen(3000, ()=>{
 .vscode/
 .env
 ```
+### Editar el package.json
+```
+"scripts": {
+  "dev": "node --watch src/index.js"
+},
+```
 
 ## DESARROLLO:
 ### Crea una carpeta
