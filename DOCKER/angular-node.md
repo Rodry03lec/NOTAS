@@ -48,6 +48,34 @@ services:
 docker compose -f docker-compose-inicial.yml run frontend-iniciar
 docker compose -f docker-compose-inicial.yml run backend-iniciar
 ```
+### Para dar los persisos a las carpetas
+```
+sudo chown -R $USER:$USER frontend backend
+```
+
+### Solo en el backend como es node se debe iniciar
+#### backend/src/index.js
+```
+import express from 'express';
+
+const app = express();
+const API_PREFIX = '/api';
+
+app.get('/', (req, res)=>{
+  res.json({ message: 'Backend funcionando XD sdasad' });
+});
+
+app.listen(3000, ()=>{
+  console.log("backend escuchando http://localhost:3000");
+});
+```
+
+#### en backend .gitignore
+```
+/node_modules
+.vscode/
+.env
+```
 
 ## DESARROLLO:
 ### Crea una carpeta
@@ -140,8 +168,4 @@ docker logs -f backend-dev
 docker logs -f frontend-dev
 ```
 
-```
-```
 
-```
-```
