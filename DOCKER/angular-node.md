@@ -173,5 +173,9 @@ docker compose -f docker-compose-dev.yml logs -f backend-dev
 docker logs -f backend-dev
 docker logs -f frontend-dev
 ```
-
+### Para acceder a cmd de cada contenedor  NOMBRE DE CONTENEDOR
+```
+docker exec -it backend-dev sh
+docker exec -it frontend-dev sh
+```
 
