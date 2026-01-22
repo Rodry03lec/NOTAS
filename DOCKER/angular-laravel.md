@@ -50,7 +50,7 @@ services:
         echo 'NOTA front: Instalando Angular'
         ng new frontend --skip-git
         echo 'NOTA front: Angular instalado'
-      echo
+      else
         echo 'Angular ya existe'
       fi
       "
@@ -187,7 +187,6 @@ RUN chmod +x /entrypoint.sh
 
 ENTRYPOINT ["/entrypoint.sh"]
 ```
-
 
 ### Adicionalmente para la entrada en angular 
 ### crea en docker/angular/entrypoint.sh
