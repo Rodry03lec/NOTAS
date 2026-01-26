@@ -13,7 +13,7 @@ mi-proyecto/
 |-- docker-compose.inicial.yml    # Para instalación inicial
 ```
 
-### docker/php/Dockerfile.inicial
+#### docker/php/Dockerfile.inicial
 ```
 FROM php:8.2-cli
 
@@ -37,7 +37,7 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 WORKDIR /var/www
 ```
 
-### docker/angular/Dockerfile.inicial
+#### docker/angular/Dockerfile.inicial
 ```
 FROM node:22-alpine
 
@@ -46,7 +46,7 @@ WORKDIR /app
 RUN npm install -g @angular/cli@21
 ```
 
-### docker-compose-inicial.yml
+#### docker-compose-inicial.yml
 ```
 services:
   angular-inicial:
@@ -86,7 +86,7 @@ services:
       '
 ```
 
-### Comandos para crear y verificar cada una
+#### Comandos para crear y verificar cada una
 ```
 docker compose -f docker-compose-inicial.yml run --rm angular-inicial
 docker compose -f docker-compose-inicial.yml run --rm laravel-inicial
@@ -95,14 +95,14 @@ docker compose -f docker-compose-inicial.yml run --rm laravel-inicial
 docker compose -f docker-compose-inicial.yml down
 ```
 
-### Para dar los permisos a cada carpeta de los proyectos
+#### Para dar los permisos a cada carpeta de los proyectos
 ```
 sudo chown -R $USER:$USER frontend backend
 ```
 
 ## MODO DE DESARROLLO
 ## Laravel
-### Crear en docker/php/Dockerfile.dev
+#### Crear en docker/php/Dockerfile.dev
 ```
 FROM php:8.2-fpm
 
@@ -141,7 +141,7 @@ USER devuser
 CMD ["php-fpm"]
 ```
 
-### Crear en docker/nginx/laravel.conf
+#### Crear en docker/nginx/laravel.conf
 ```
 server {
     listen 80;
@@ -162,7 +162,7 @@ server {
 ```
 
 ## Angular
-### Crear en docker/angular/Dockerfile.dev
+#### Crear en docker/angular/Dockerfile.dev
 ```
 FROM node:20
 
@@ -176,7 +176,7 @@ EXPOSE 4200
 CMD sh -c "rm -rf node_modules package-lock.json && npm install && ng serve --host 0.0.0.0 --port 4200 --poll=2000"
 ```
 
-### Crear docker-compose-dev.yml
+#### Crear docker-compose-dev.yml
 ```
 services:
   mysql_developer:
@@ -254,16 +254,16 @@ volumes:
 ```
 
 ## Comandos para la ejecion de comandos
-### Para levantar todos los servicios
+#### Para levantar todos los servicios
 ```
 docker compose -f docker-compose-dev.yml up -d  --build
 ```
-### Para bajar los servicios
+#### Para bajar los servicios
 ```
 docker compose -f docker-compose-dev.yml down
 ```
 
-### Para ver los logs
+#### Para ver los logs
 ```
 docker compose -f docker-compose-dev.yml logs -f angular_developer
 docker compose -f docker-compose-dev.yml logs -f php_developer
@@ -274,13 +274,13 @@ docker logs -f angular_developer
 docker logs -f php_developer
 ```
 
-### Para ingresar tanto al backend y frontend
+#### Para ingresar tanto al backend y frontend
 ```
 docker exec -it php_developer bash
 docker exec -it angular_developer bash
 ```
 
-### Limpieza ocacional para que no haya muchas imagenes
+#### Limpieza ocacional para que no haya muchas imagenes
 ```
 docker image prune
 ```
