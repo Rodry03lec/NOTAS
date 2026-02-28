@@ -6,15 +6,15 @@
 
 ### DEPENDENCIAS 
 ```
-"@angular/platform-browser-dynamic": "^21",
+"@angular/platform-browser-dynamic": "^21",    // El motor de arranque: Permite que Angular se compile y ejecute en el navegador en tiempo real (JIT).
 
-"@primeuix/themes": "^2.0.0",
-"@tailwindcss/postcss": "^4.1.11",
-"chart.js": "4.4.2",
-"primeicons": "^7.0.0",
-"primeng": "^21.0.2",
+"@primeuix/themes": "^2.0.0",     // El motor de diseño: Contiene los nuevos "Design Tokens" (colores, espacios) que alimentan el look de PrimeNG.
+"@tailwindcss/postcss": "^4.1.11",  // El procesador: El plugin oficial para que Tailwind v4 funcione dentro de tu flujo de trabajo de PostCSS.
+"chart.js": "4.4.2",  // Gráficos: Librería externa necesaria para que los componentes de gráficas de PrimeNG (p-chart) funcionen.
+"primeicons": "^7.0.0",  // Iconod: La librería oficial de iconos vectoriales para usar en botones, menús y inputs.
+"primeng": "^21.0.2",  // Librería de UI: El conjunto principal de componentes (tablas, formularios, modales) listos para usar.
 
-"tailwindcss-primeui": "^0.6.1",
+"tailwindcss-primeui": "^0.6.1",  // El puente: Plugin que conecta las variables de PrimeUI con las clases de Tailwind CSS.
 ```
 ### DEVDEPENDENCIAS
 ```
