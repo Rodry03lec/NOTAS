@@ -568,3 +568,156 @@ miUbicacion() {
 | Property binding | `[propiedad]="valor"` | Enviar datos al hijo |
 | Event binding | `(evento)="metodo()"` | Escuchar eventos del hijo |
 | Two-way binding | `[(valor)]="variable"` | Sincronizar dato en ambas direcciones |
+
+
+### Activar environments
+```
+ng generate environments
+```
+### En envorontments
+```javascript
+  export const environment = {
+    production: true, // y false en developer
+    apiUrl: 'http://localhost:3000/api'
+  };
+```
+### Creamos un servicio mapa servicio
+#### ng g s servicio/mapa.service
+```javascript
+  //declarmaos la base url
+  urlBase = environment.apiUrl;
+
+  //inyectamos el http cliente
+  http = inject(HttpClient);
+
+  listarEscuelas(){
+    return this.http.get(`${this.urlBase}/mapa/listar`);
+  }
+```
+### en nest.
+```javascript
+  select
+      id,
+      nombre,
+      direccion,
+      ST_AsGeoJSON(geom) as geom
+  from public.unidad_educativa;
+```
+## No me funciona por el caso de los cors en main.ts
+```javascript
+  app.enableCors({
+    origin: ['http://localhost:4200'],
+  });
+```
+
+#### Optenemos la lista de colegios : mostrarColegios  
+```javascript
+  // Capa que contendrá todas las geometrías (puntos o polígonos)
+  // LayerGroup permite agrupar múltiples elementos y gestionarlos como una sola capa
+  private geomLayer = L.layerGroup();
+
+  mostrarColegios(): void {
+
+    // Mensaje de depuración para verificar que se ejecuta el método
+    console.log('Obteniendo colegios...');
+    // Llamada al servicio que consulta los datos desde el backend
+    this.mapaServicio.listarEscuelas().pipe(
+      // tap permite ejecutar lógica sin modificar el flujo del observable
+      tap((resp: any) => {
+        // Validamos que la respuesta exista y contenga elementos
+        if (!resp || resp.length === 0) {
+          console.warn('No se encontraron colegios');
+          return;
+        }
+        // Si existen datos, enviamos la información al método que dibuja las geometrías
+        this.dibujarGeometrias(resp);
+      }),
+      // Manejo de errores en la petición
+      catchError((error) => {
+        console.error('Error al obtener colegios:', error);
+        // Retornamos un observable vacío para evitar que la aplicación falle
+        return of([]);
+      }),
+      // finalize se ejecuta siempre al finalizar el observable
+      finalize(() => {
+        console.log("Proceso de carga finalizado");
+      })
+
+    ).subscribe();
+  }
+
+```
+
+#### creamos esa funcion para prueba. dibujarGeometrias
+```javascript
+    dibujarGeometrias(data: any[]): void {
+    // Limpiamos la capa antes de dibujar nuevas geometrías
+    // Esto evita que se dupliquen los elementos si el método se ejecuta varias veces
+    this.geomLayer.clearLayers();
+    // Bounds se usa para calcular la extensión geográfica de todas las geometrías
+    const bounds = L.latLngBounds([]);
+    data.forEach((item: any) => {
+      // Si el registro no tiene geometría se ignora
+      if (!item.geom) return;
+      // Convertimos el campo geom (que viene como string JSON) a objeto
+      const geom = JSON.parse(item.geom);
+      // Tipo de geometría (Point, Polygon, etc.)
+      const tipo = geom.type;
+      // Coordenadas de la geometría
+      const coords = geom.coordinates;
+      // Variable donde se almacenará el objeto gráfico creado
+      let layer;
+      // ==========================
+      // GEOMETRÍA TIPO POINT
+      // ==========================
+      if (tipo === "Point") {
+        // En GeoJSON las coordenadas vienen como [lng, lat]
+        const lng = coords[0];
+        const lat = coords[1];
+        // Leaflet usa el formato [lat, lng]
+        layer = L.marker([lat, lng]);
+        // Extendemos los límites del mapa para incluir este punto
+        bounds.extend([lat, lng]);
+      }
+
+
+      // ==========================
+      // GEOMETRÍA TIPO POLYGON
+      // ==========================
+      if (tipo === "Polygon") {
+        // Convertimos cada coordenada de [lng,lat] a [lat,lng]
+        const polygonCoords = coords[0].map((c: any) => [c[1], c[0]]);
+        // Creamos el polígono en el mapa
+        layer = L.polygon(polygonCoords, {
+          color: "blue",
+          weight: 2
+        });
+
+        // Extendemos los límites del mapa usando cada vértice del polígono
+        polygonCoords.forEach((p: any) => bounds.extend(p));
+      }
+
+
+      // Si se creó correctamente una geometría
+      if (layer) {
+        // Se agrega un popup con información del registro
+        layer.bindPopup(`
+          <b>${item.nombre}</b><br>
+          ${item.direccion ?? ""}
+        `);
+        // Agregamos la geometría al LayerGroup
+        this.geomLayer.addLayer(layer);
+      }
+
+    });
+
+    // Añadimos la capa al mapa
+    this.geomLayer.addTo(this.mapa);
+
+    // Ajustamos el zoom automáticamente para mostrar todas las geometrías
+    if (bounds.isValid()) {
+      this.mapa.fitBounds(bounds, { padding: [40, 40] });
+    }
+
+  }
+```
