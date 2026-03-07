@@ -93,19 +93,65 @@ private iniciarMapa(): void {
 ### *inset-0* : Es equivalente a:  top: 0; right: 0; bottom: 0; left: 0;  Hace que el mapa ocupe todo el espacio disponible.
 ### *z-0* :  Nivel de profundidad bajo. Nos servirá cuando agreguemos botones o elementos flotantes encima del mapa
 
+# NOTA
+## Hasta aqui debes tener lo siguiente
 ```
+import { AfterViewInit, Component } from '@angular/core';
+
+import * as L from 'leaflet';
+
+@Component({
+  selector: 'app-mapa',
+  imports: [],
+  templateUrl: './mapa.html',
+  styleUrl: './mapa.scss',
+})
+export class Mapa implements AfterViewInit {
+
+  private mapa!: L.Map;
+
+  ngAfterViewInit(){
+    this.iniciarMapa();
+  }
+
+  iniciarMapa(){
+    this.mapa = L.map('mapa_id', {
+      center: [-16.5, -68.15], // coordenadas iniciales (latitud y longitu) -- bolivia
+      zoom: 6,
+      zoomControl: true
+    });
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: 'OpenStreetMap'
+    }).addTo(this.mapa);
+
+  }
+
+}
+```
+## El Html
+```
+<div class="relative h-screen w-full overflow-hidden bg-slate-500" >
+  <div id="mapa_id" class="absolute inset-0 z-0"></div>
+</div>
 ```
 
+
+# 2 ::::::::::: Agregado de componentes
+## Componente header
 ```
+ng g c mapa/header --skip-tests
+```
+### header.ts
+```
+import { ToolbarModule } from 'primeng/toolbar';
+import { ButtonModule } from 'primeng/button';
+
+drawerVisible: boolean = false;   // Controla si el menú lateral móvil está abierto o cerrado.
+```
+### header.html
 ```
 
-```
-```
-
-```
-```
-
-```
 ```
 
 ```

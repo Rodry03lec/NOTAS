@@ -1,0 +1,570 @@
+# Guía de Clase — Componente Mapa (Angular + Leaflet + PrimeNG)
+## Tecnologías utilizadas
+
+- **Angular 21 — Framework principal
+- **Leaflet** — Librería de mapas interactivos
+- **PrimeNG** — Componentes visuales (Tabs, Button, Card, Drawer...)
+- **Tailwind CSS** — Estilos utilitarios
+
+---
+
+## Paso 1 — Solo el Mapa
+
+> **Concepto:** Contenedor base + inicialización de Leaflet con `AfterViewInit`
+
+### `mapa.ts`
+
+```typescript
+import { Component, ElementRef, inject, NgZone, signal, ViewChild, AfterViewInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import * as L from 'leaflet';
+
+// Configuración del icono por defecto de Leaflet
+delete (L.Icon.Default.prototype as any)._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconUrl: 'leaflet/icono.png',
+  iconRetinaUrl: 'leaflet/icono.png',
+  shadowUrl: '',
+  iconSize: [40, 40],
+  iconAnchor: [20, 40],
+  popupAnchor: [0, -35]
+});
+
+@Component({
+  selector: 'app-mapa',
+  imports: [CommonModule],
+  templateUrl: './mapa.html',
+  styleUrl: './mapa.scss',
+})
+export class Mapa implements AfterViewInit {
+
+  private mapa!: L.Map;
+  private zone = inject(NgZone);
+
+  // Signal que actualiza la UI automáticamente cuando cambia
+  coordenadas = signal({ latitud: '-16.5000', longitud: '-68.1500' });
+
+  // Referencia al div del mapa en el HTML
+  @ViewChild('mapContainer') mapContainer!: ElementRef;
+
+  // Se ejecuta cuando el HTML ya fue renderizado
+  // Leaflet necesita que el div exista antes de inicializarse
+  ngAfterViewInit(): void {
+    this.iniciarMapa();
+  }
+
+  private iniciarMapa(): void {
+    this.mapa = L.map('mapa_id', {
+      center: [-16.5, -68.15], // La Paz, Bolivia
+      zoom: 6,
+      zoomControl: false
+    });
+
+    // Capa base mínima para ver el mapa
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors',
+      maxZoom: 19
+    }).addTo(this.mapa);
+
+    // runOutsideAngular → mejora rendimiento en eventos frecuentes
+    this.zone.runOutsideAngular(() => {
+      this.mapa.on('mousemove', (e: L.LeafletMouseEvent) => {
+        this.coordenadas.set({
+          latitud: e.latlng.lat.toFixed(4),
+          longitud: e.latlng.lng.toFixed(4)
+        });
+      });
+    });
+
+    window.addEventListener('resize', () => this.mapa.invalidateSize());
+  }
+}
+```
+
+### `mapa.html`
+
+```html
+<div class="relative h-screen w-full overflow-hidden bg-slate-100">
+
+  <!-- 
+    id="mapa_id"     → Leaflet lo busca por este ID
+    absolute inset-0 → ocupa toda la pantalla
+    z-0              → queda debajo de todo lo demás
+    #mapContainer    → referencia para ViewChild en el .ts
+  -->
+  <div id="mapa_id" class="absolute inset-0 z-0" #mapContainer></div>
+
+</div>
+```
+
+---
+
+## Paso 2 — Agregamos el Header
+
+> **Concepto:** Comunicación padre→hijo con `@Input` e hijo→padre con `@Output`
+
+### `mapa.ts` — agregar
+
+```typescript
+import { Header } from './header/header';
+
+// En imports del @Component:
+imports: [CommonModule, Header],
+
+// En la clase:
+drawerVisible: boolean = false;
+```
+
+### `mapa.html` — agregar
+
+```html
+<!-- 
+  [drawerVisible] → le enviamos el estado al header     (@Input)
+  (openDrawer)    → escuchamos cuando pide abrir drawer (@Output)
+-->
+<app-header
+  [drawerVisible]="drawerVisible"
+  (openDrawer)="drawerVisible = true">
+</app-header>
+```
+
+---
+### header.ts
+```typescript
+// Importamos herramientas básicas de Angular
+import { Component, EventEmitter, Input, Output } from '@angular/core';
+
+import { ToolbarModule } from 'primeng/toolbar';  // Barra superior tipo toolbar
+import { ButtonModule } from 'primeng/button';    // Botones estilizados
+import { CommonModule } from '@angular/common';   // Directivas básicas de Angular (ngIf, ngFor, etc.)
+
+@Component({
+  selector: 'app-header',
+  imports: [
+    CommonModule,  // Permite usar directivas estructurales como *ngIf
+    ToolbarModule, // Permite usar el componente de barra superior
+    ButtonModule   // Permite usar botones de PrimeNG
+  ],
+  templateUrl: './header.html',
+  styles: ``,
+})
+
+// Definimos la clase del componente
+export class Header {
+
+  // INPUT
+  // Permite recibir datos desde el componente padre
+  // En este caso recibe el estado de visibilidad del Drawer (panel lateral)
+  @Input() drawerVisible!: boolean;
+
+  // OUTPUT
+  // Permite enviar eventos desde este componente hacia el componente padre
+  // EventEmitter crea un evento personalizado
+  @Output() openDrawer = new EventEmitter();
+
+  // Método que se ejecuta cuando el usuario hace click en el botón del menú
+  abrirMenu() {
+
+    // Emitimos el evento hacia el componente padre
+    // El componente padre escuchará este evento y abrirá el drawer
+    this.openDrawer.emit();
+  }
+}
+
+```
+
+### header.html
+```html
+<!-- Contenedor del encabezado -->
+<!-- Se posiciona de forma absoluta en la parte superior del visor -->
+<header class="absolute top-0 left-0 right-0 z-50 p-2 md:p-4">
+
+  <!-- Contenedor central para limitar el ancho máximo -->
+  <div class="mx-auto max-w-7xl">
+
+    <!-- Toolbar de PrimeNG -->
+    <!-- Se usa como barra superior con efectos visuales -->
+    <p-toolbar class="backdrop-blur-md bg-white/70 border border-white/20 shadow-xl rounded-2xl px-3 py-2">
+
+      <!-- SECCIÓN IZQUIERDA DE LA TOOLBAR -->
+      <div class="p-toolbar-group-start gap-2">
+
+        <!-- Botón hamburguesa para abrir el menú lateral -->
+        <!-- Solo visible en dispositivos móviles -->
+        <p-button icon="pi pi-bars" [text]="true" severity="secondary" class="md:hidden" (onClick)="abrirMenu()" />
+
+        <!-- Contenedor del logo y título -->
+        <div class="flex items-center gap-2">
+
+          <!-- Icono del visor -->
+          <div class="bg-primary-600 p-2 rounded-xl">
+            <!-- Icono de mapa usando PrimeIcons -->
+            <i class="pi pi-map text-white text-lg"></i>
+          </div>
+
+          <!-- Título del visor -->
+          <span class="text-lg font-black tracking-tighter uppercase">
+            Geo
+            <!-- Segunda parte del nombre con color diferente -->
+            <span class="text-primary-600 font-light">
+              Visor
+            </span>
+          </span>
+        </div>
+      </div>
+
+
+      <!-- SECCIÓN DERECHA DE LA TOOLBAR -->
+      <div class="p-toolbar-group-end gap-2">
+
+        <!-- Botón de búsqueda -->
+        <!-- Representa funcionalidad futura para buscar lugares -->
+        <p-button
+          icon="pi pi-search"
+          [rounded]="true"
+          severity="primary"
+          class="h-9 w-9" />
+      </div>
+    </p-toolbar>
+  </div>
+</header>
+
+
+```
+---
+
+## Paso 3 — Agregamos el Footer
+
+> **Concepto:** Pasar datos en tiempo real con `signal()` a un componente hijo
+
+### `mapa.ts` — agregar
+
+```typescript
+import { Footer } from './footer/footer';
+
+// En imports del @Component:
+imports: [CommonModule, Header, Footer],
+```
+
+### `mapa.html` — agregar
+
+```html
+<!-- 
+  coordenadas() → llamamos al signal como función para leer su valor actual
+-->
+<app-footer
+  [lat]="coordenadas().latitud"
+  [lng]="coordenadas().longitud">
+</app-footer>
+```
+---
+
+### footer.ts
+```typescript
+// Input permite recibir datos desde un componente padre
+import { Component, Input } from '@angular/core';
+
+// Importamos CommonModule que incluye directivas básicas de Angular
+// como *ngIf, *ngFor, etc.
+import { CommonModule } from '@angular/common';
+
+// Decorador que define la configuración del componente
+@Component({
+  selector: 'app-footer',
+
+  // Módulos que necesita este componente
+  imports: [CommonModule],
+  templateUrl: './footer.html',
+  styles: ``,
+})
+
+export class Footer {
+
+  // Decorador Input
+  // Permite que el componente padre envíe datos a este componente
+  // Variable que recibirá la latitud desde el componente padre
+  @Input() lat!: string;
+
+  // Variable que recibirá la longitud desde el componente padre
+  @Input() lng!: string;
+}
+
+```
+### footer.html
+```html
+<!-- Contenedor principal del footer -->
+<!-- Se posiciona de forma absoluta en la parte inferior del visor -->
+<footer class="absolute bottom-3 left-1/2 -translate-x-1/2 z-30 hidden md:block">
+  <!-- Caja que contiene la información de coordenadas -->
+  <!-- Tiene efecto vidrio (glass effect) usando blur y transparencia -->
+  <div class="bg-slate-900/80 backdrop-blur-md text-white px-5 py-2 rounded-full text-[10px] font-mono border border-white/10 shadow-2xl flex gap-4">
+
+    <!-- Contenedor que agrupa las coordenadas -->
+    <div class="flex gap-3">
+      <!-- Latitud -->
+      <span>
+        <!-- Texto descriptivo -->
+        LAT:
+        <!-- Valor dinámico que viene desde el componente padre -->
+        <!-- Angular lo renderiza usando interpolación -->
+        <span class="text-emerald-400">
+          {{ lat }}
+        </span>
+      </span>
+
+      <!-- Longitud -->
+      <span>
+        <!-- Texto descriptivo -->
+        LONG :
+        <!-- Valor dinámico enviado desde el componente del mapa -->
+        <span class="text-emerald-400">
+          {{ lng }}
+        </span>
+      </span>
+    </div>
+  </div>
+</footer>
+
+```
+
+---
+
+## Paso 4 — Agregamos el Menú
+
+> **Concepto:** `ng-template` reutilizable + panel desktop + drawer mobile
+
+### `mapa.ts` — agregar
+
+```typescript
+import { TabsModule } from 'primeng/tabs';
+import { CardModule } from 'primeng/card';
+import { DrawerModule } from 'primeng/drawer';
+
+// En imports del @Component:
+imports: [..., TabsModule, CardModule, DrawerModule],
+
+// En la clase:
+activeTab: string = 'menu';
+```
+
+### `mapa.html` — agregar
+
+```html
+<!-- 
+  PANEL LATERAL DESKTOP
+  hidden md:block → solo visible en pantallas medianas o grandes
+  ng-container    → inserta el template sin agregar un div extra al DOM
+-->
+<aside class="absolute z-40 top-24 left-6 w-80 lg:w-96 hidden md:block">
+  <p-card styleClass="shadow-2xl border-none backdrop-blur-lg bg-white/90 rounded-2xl overflow-hidden">
+    <ng-container *ngTemplateOutlet="menuContent"></ng-container>
+  </p-card>
+</aside>
+
+<!-- 
+  DRAWER MOBILE
+  [(visible)] → two-way binding con drawerVisible
+-->
+<p-drawer
+  [(visible)]="drawerVisible"
+  header="Menú de Capas"
+  [style]="{ width: '85vw', 'max-width': '350px' }">
+  <ng-container *ngTemplateOutlet="menuContent"></ng-container>
+</p-drawer>
+
+<!-- 
+  TEMPLATE REUTILIZABLE
+  #menuContent → se usa tanto en el panel desktop como en el drawer mobile
+  Evita duplicar el mismo HTML dos veces
+-->
+<ng-template #menuContent>
+  <div class="p-4">
+
+    <p-tabs [(value)]="activeTab">
+      <p-tablist class="bg-transparent border-b border-slate-100">
+        <p-tab value="menu" class="flex-1 font-bold text-sm">Menu</p-tab>
+        <p-tab value="capas_almacenadas" class="flex-1 font-bold text-sm">Capas Almacenadas</p-tab>
+      </p-tablist>
+    </p-tabs>
+
+    <div class="py-4 max-h-[60vh] overflow-y-auto">
+
+      <!-- @if → nuevo flujo de control Angular 17+ (reemplaza *ngIf) -->
+      @if (activeTab === 'menu') {
+        <p>Aquí irá el menú</p>
+      }
+
+      @if (activeTab === 'capas_almacenadas') {
+        <p>Aquí irán las capas almacenadas</p>
+      }
+
+    </div>
+  </div>
+</ng-template>
+```
+
+---
+
+## Paso 5 — Agregamos los Mini Mapas (BaseMaps)
+
+> **Concepto:** `@for` para iterar + `[ngClass]` para estilos condicionales
+
+### `mapa.ts` — agregar
+
+```typescript
+import { TooltipModule } from 'primeng/tooltip';
+import { BASE_MAPS_CONFIG } from '../config/tipos_mapa';
+
+// En imports del @Component:
+imports: [..., TooltipModule],
+
+// En la clase:
+readonly mapas_base = BASE_MAPS_CONFIG;
+mapaSeleccionadoId: string = 'streets';
+private mapaBaseActual?: L.TileLayer;
+
+// En iniciarMapa() reemplazar capa fija por:
+setTimeout(() => this.cambiarMapaBase(this.mapas_base[0]));
+
+// Nuevo método:
+cambiarMapaBase(config: any) {
+  this.mapaSeleccionadoId = config.id;
+  if (this.mapaBaseActual) {
+    this.mapa.removeLayer(this.mapaBaseActual);
+  }
+  this.mapaBaseActual = L.tileLayer(config.url, {
+    attribution: config.atributo,
+    maxZoom: 19
+  }).addTo(this.mapa);
+}
+```
+
+### `mapa.html` — agregar
+
+```html
+<!-- 
+  BASEMAPS — esquina inferior izquierda
+  @for       → nuevo flujo Angular 17+ (reemplaza *ngFor)
+  track m.id → optimización: Angular identifica cada elemento por su id
+  [pTooltip] → muestra el nombre al hacer hover
+  [ngClass]  → aplica estilos distintos si ese mapa está seleccionado
+-->
+<div class="absolute bottom-6 left-4 md:bottom-10 md:left-6 z-40">
+  <div class="flex gap-3 p-2 bg-white/30 backdrop-blur-md rounded-2xl border border-white/40 shadow-2xl">
+
+    @for (m of mapas_base; track m.id) {
+      <div
+        (click)="cambiarMapaBase(m)"
+        class="relative group cursor-pointer transition-all duration-300"
+        [pTooltip]="m.nombre"
+        tooltipPosition="top">
+
+        <div
+          class="h-14 w-14 md:h-16 md:w-16 rounded-xl border-2 overflow-hidden transition-all shadow-lg group-hover:-translate-y-2"
+          [ngClass]="{
+            'border-primary-500 ring-4 ring-primary-500/20': mapaSeleccionadoId === m.id,
+            'border-white': mapaSeleccionadoId !== m.id
+          }">
+
+          <img [src]="m.imagen" class="w-full h-full object-cover">
+
+          <!-- Check solo en el mapa activo -->
+          @if (mapaSeleccionadoId === m.id) {
+            <div class="absolute inset-0 bg-primary-500/20 flex items-center justify-center">
+              <i class="pi pi-check text-white bg-primary-500 rounded-full p-1 text-[8px]"></i>
+            </div>
+          }
+
+        </div>
+      </div>
+    }
+
+  </div>
+</div>
+```
+
+---
+
+## Paso 6 — Agregamos las Herramientas
+
+> **Concepto:** Botones que llaman métodos del `.ts` para controlar Leaflet directamente
+
+### `mapa.ts` — agregar
+
+```typescript
+import { ButtonModule } from 'primeng/button';
+
+// En imports del @Component:
+imports: [..., ButtonModule],
+
+// Nuevos métodos:
+acercar() { this.mapa.zoomIn(); }
+alejar()  { this.mapa.zoomOut(); }
+
+miUbicacion() {
+  // API de geolocalización del navegador vía Leaflet
+  this.mapa.locate({ enableHighAccuracy: true });
+
+  this.mapa.once('locationfound', (e: any) => {
+    this.mapa.flyTo(e.latlng, 20);
+    L.marker(e.latlng)
+      .addTo(this.mapa)
+      .bindPopup('Mi ubicación')
+      .openPopup();
+  });
+}
+```
+
+### `mapa.html` — agregar
+
+```html
+<!-- 
+  CONTROLES — esquina inferior derecha
+  (onClick)     → evento de PrimeNG Button
+  [text]="true" → botón sin fondo (solo icono)
+  [rounded]     → botón circular
+  severity      → color según tema PrimeNG
+-->
+<div class="absolute right-4 bottom-10 md:right-6 md:bottom-12 z-40 flex flex-col gap-3">
+
+  <!-- Zoom + y Zoom - agrupados -->
+  <div class="flex flex-col bg-white/90 backdrop-blur-md p-1 rounded-xl shadow-2xl border border-white">
+    <p-button icon="pi pi-plus"  [text]="true" (onClick)="acercar()" class="h-10 w-10 md:h-11 md:w-11" />
+    <div class="h-px bg-slate-100 mx-2"></div>
+    <p-button icon="pi pi-minus" [text]="true" (onClick)="alejar()"  class="h-10 w-10 md:h-11 md:w-11" />
+  </div>
+
+  <!-- Botón de ubicación actual -->
+  <p-button
+    icon="pi pi-compass"
+    [rounded]="true"
+    severity="primary"
+    (onClick)="miUbicacion()"
+    class="shadow-xl h-10 w-10 md:h-12 md:w-12" />
+
+</div>
+```
+
+---
+
+## Resumen — Qué agrega cada paso
+
+
+| Paso | Qué agrega        | Concepto Angular clave              |
+|------|-------------------|-------------------------------------|
+| 1    | Div del mapa      | `AfterViewInit`, `ViewChild`         |
+| 2    | Header            | `@Input`, `@Output`, Event binding  |
+| 3    | Footer            | `signal()`, Property binding        |
+| 4    | Menú              | `ng-template`, `@if`, two-way binding |
+| 5    | Mini mapas        | `@for`, `[ngClass]`, `[pTooltip]`   |
+| 6    | Herramientas      | `(onClick)`, métodos del componente |
+
+---
+
+## Conceptos clave de Angular usados
+
+| Concepto | Sintaxis | Para qué sirve |
+|----------|----------|----------------|
+| Property binding | `[propiedad]="valor"` | Enviar datos al hijo |
+| Event binding | `(evento)="metodo()"` | Escuchar eventos del hijo |
+| Two-way binding | `[(valor)]="variable"` | Sincronizar dato en ambas direcciones |
