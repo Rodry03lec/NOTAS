@@ -16,19 +16,50 @@
 
 ```typescript
 import { Component, ElementRef, inject, NgZone, signal, ViewChild, AfterViewInit } from '@angular/core';
+// Component → Permite definir un componente en Angular
+// ElementRef → Permite acceder directamente a un elemento del DOM
+// inject → Nueva forma moderna de inyectar dependencias
+// NgZone → Controla el cambio de detección de Angular (mejora rendimiento)
+// signal → Sistema reactivo moderno de Angular para manejar estado
+// ViewChild → Permite obtener referencia de un elemento del HTML
+// AfterViewInit → Ciclo de vida que se ejecuta cuando el HTML ya está renderizado
+
+// CommonModule → Permite usar directivas comunes como ngIf, ngFor en el HTML
 import { CommonModule } from '@angular/common';
+
+// Importamos toda la librería Leaflet con el alias "L"
 import * as L from 'leaflet';
 
-// Configuración del icono por defecto de Leaflet
+// CONFIGURACIÓN DEL ICONO POR DEFECTO DE LEAFLET
+// Leaflet normalmente busca sus iconos dentro de node_modules,
+// lo cual en Angular suele generar errores de rutas.
+
+// Eliminamos la función interna que busca automáticamente los iconos
 delete (L.Icon.Default.prototype as any)._getIconUrl;
+
+// Definimos manualmente las rutas del icono
 L.Icon.Default.mergeOptions({
+
+  // Icono normal
   iconUrl: 'leaflet/icono.png',
+
+  // Icono para pantallas retina
   iconRetinaUrl: 'leaflet/icono.png',
+
+  // Quitamos la sombra del marcador
   shadowUrl: '',
+
+  // Tamaño del icono
   iconSize: [40, 40],
+
+  // Punto exacto donde el icono toca el mapa
   iconAnchor: [20, 40],
+
+  // Posición donde aparece el popup respecto al icono
   popupAnchor: [0, -35]
 });
+
+
 
 @Component({
   selector: 'app-mapa',
@@ -36,47 +67,85 @@ L.Icon.Default.mergeOptions({
   templateUrl: './mapa.html',
   styleUrl: './mapa.scss',
 })
+
+// CLASE DEL COMPONENTE
+// Implementamos AfterViewInit porque Leaflet necesita
+// que el div del mapa exista antes de inicializarse
 export class Mapa implements AfterViewInit {
 
+  // Variable donde se guardará la instancia del mapa
   private mapa!: L.Map;
+
+  // Inyectamos NgZone usando la nueva API de Angular
   private zone = inject(NgZone);
 
-  // Signal que actualiza la UI automáticamente cuando cambia
-  coordenadas = signal({ latitud: '-16.5000', longitud: '-68.1500' });
+  // SIGNAL REACTIVO
 
-  // Referencia al div del mapa en el HTML
+  // Signal que guarda las coordenadas actuales
+  // Cuando cambia su valor Angular actualiza la UI automáticamente
+  coordenadas = signal({
+    latitud: '-16.5000',
+    longitud: '-68.1500'
+  });
+
+  // REFERENCIA AL HTML
+  // ViewChild obtiene referencia al elemento del HTML
+  // Ejemplo: <div #mapContainer></div>
   @ViewChild('mapContainer') mapContainer!: ElementRef;
 
-  // Se ejecuta cuando el HTML ya fue renderizado
-  // Leaflet necesita que el div exista antes de inicializarse
+  // CICLO DE VIDA
+  // Se ejecuta cuando el HTML del componente ya fue renderizado
+  // Este momento es ideal para iniciar Leaflet
   ngAfterViewInit(): void {
     this.iniciarMapa();
   }
 
+  // FUNCIÓN QUE CREA EL MAPA
   private iniciarMapa(): void {
+
+    // Creamos el mapa dentro del div con id "mapa_id"
     this.mapa = L.map('mapa_id', {
-      center: [-16.5, -68.15], // La Paz, Bolivia
-      zoom: 6,
-      zoomControl: false
+      center: [-16.5, -68.15], // Coordenadas iniciales del mapa (La Paz - Bolivia)
+      zoom: 6, // Nivel de zoom inicial
+      zoomControl: false // Ocultamos el control de zoom por defecto
     });
 
-    // Capa base mínima para ver el mapa
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; OpenStreetMap contributors',
-      maxZoom: 19
-    }).addTo(this.mapa);
+    // CAPA BASE DEL MAPA
 
-    // runOutsideAngular → mejora rendimiento en eventos frecuentes
+    // TileLayer carga las imágenes del mapa desde OpenStreetMap
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      // Texto de atribución obligatorio por licencia
+      attribution: '&copy; OpenStreetMap contributors',
+      // Zoom máximo permitido
+      maxZoom: 19
+    }).addTo(this.mapa); // Agregamos la capa al mapa
+
+
+    // EVENTO DEL MOUSE
+    // runOutsideAngular evita que Angular ejecute
+    // detección de cambios en cada movimiento del mouse
+    // lo que mejora mucho el rendimiento
     this.zone.runOutsideAngular(() => {
+      // Evento que se ejecuta cada vez que el mouse se mueve en el mapa
       this.mapa.on('mousemove', (e: L.LeafletMouseEvent) => {
+        // Actualizamos las coordenadas usando el signal
         this.coordenadas.set({
+          // latlng contiene las coordenadas del cursor
           latitud: e.latlng.lat.toFixed(4),
+          // toFixed limita los decimales
           longitud: e.latlng.lng.toFixed(4)
         });
       });
     });
 
-    window.addEventListener('resize', () => this.mapa.invalidateSize());
+
+    // RESPONSIVE DEL MAPA
+    // Cuando cambia el tamaño de la ventana
+    // recalculamos el tamaño del mapa
+    window.addEventListener('resize', () => {
+      // invalidateSize fuerza a Leaflet a recalcular el tamaño
+      this.mapa.invalidateSize();
+    });
   }
 }
 ```
