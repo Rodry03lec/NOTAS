@@ -673,6 +673,7 @@ ng generate environments
   }
 ```
 ### en nest.
+### Convertir una geometría de la base de datos a formato GeoJSON.
 ```javascript
   select
       id,
