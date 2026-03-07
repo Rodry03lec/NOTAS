@@ -800,3 +800,21 @@ ng generate environments
 
   }
 ```
+### modificando los puntos
+```javascript
+  iconoColegio = L.icon({
+    iconUrl: 'leaflet/colegio.png',
+    iconSize: [35, 35],
+    iconAnchor: [17, 35],
+    popupAnchor: [0, -35]
+  });
+// cambiar aqui
+// Leaflet usa el formato [lat, lng]
+        //layer = L.marker([lat, lng]);
+        layer = L.marker([lat, lng], {
+          icon: this.iconoColegio
+        });
+
+```
+
+
