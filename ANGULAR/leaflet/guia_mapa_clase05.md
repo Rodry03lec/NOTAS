@@ -135,6 +135,15 @@ export class Mapa implements AfterViewInit {
           // toFixed limita los decimales
           longitud: e.latlng.lng.toFixed(4)
         });
+
+
+        console.log(
+          'Latitud:',
+          this.coordenadas().latitud,
+          'Longitud:',
+          this.coordenadas().longitud
+        );
+        
       });
     });
 
