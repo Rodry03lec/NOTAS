@@ -576,51 +576,84 @@ import { ButtonModule } from 'primeng/button';
 imports: [..., ButtonModule],
 
 // Nuevos métodos:
-acercar() { this.mapa.zoomIn(); }
-alejar()  { this.mapa.zoomOut(); }
+  // =============================
+  // CONTROLES DEL MAPA
+  // =============================
 
-miUbicacion() {
-  // API de geolocalización del navegador vía Leaflet
-  this.mapa.locate({ enableHighAccuracy: true });
+  // Acercar el mapa
+  acercar() {
+    this.mapa.zoomIn();
+  }
 
-  this.mapa.once('locationfound', (e: any) => {
-    this.mapa.flyTo(e.latlng, 20);
-    L.marker(e.latlng)
-      .addTo(this.mapa)
-      .bindPopup('Mi ubicación')
-      .openPopup();
-  });
-}
+  // Alejar el mapa
+  alejar() {
+    this.mapa.zoomOut();
+  }
+
+
+  // =============================
+  // UBICACIÓN DEL USUARIO
+  // =============================
+
+  miUbicacion() {
+
+    // Usamos la API de geolocalización del navegador
+    this.mapa.locate({
+      enableHighAccuracy: true
+    });
+
+    // Cuando se encuentra la ubicación
+    this.mapa.once('locationfound', (e: any) => {
+
+      // Movemos el mapa hacia la ubicación encontrada
+      this.mapa.flyTo(e.latlng, 20);
+
+      // Agregamos un marcador en la ubicación
+      L.marker(e.latlng)
+        .addTo(this.mapa)
+        .bindPopup("Mi ubicación")
+        .openPopup();
+
+    });
+
+  }
 ```
 
 ### `mapa.html` — agregar
 
 ```html
-<!-- 
-  CONTROLES — esquina inferior derecha
-  (onClick)     → evento de PrimeNG Button
-  [text]="true" → botón sin fondo (solo icono)
-  [rounded]     → botón circular
-  severity      → color según tema PrimeNG
--->
-<div class="absolute right-4 bottom-10 md:right-6 md:bottom-12 z-40 flex flex-col gap-3">
+  <!-- CONTROLES MAPA -->
 
-  <!-- Zoom + y Zoom - agrupados -->
-  <div class="flex flex-col bg-white/90 backdrop-blur-md p-1 rounded-xl shadow-2xl border border-white">
-    <p-button icon="pi pi-plus"  [text]="true" (onClick)="acercar()" class="h-10 w-10 md:h-11 md:w-11" />
-    <div class="h-px bg-slate-100 mx-2"></div>
-    <p-button icon="pi pi-minus" [text]="true" (onClick)="alejar()"  class="h-10 w-10 md:h-11 md:w-11" />
+  <div class="absolute right-4 bottom-10 md:right-6 md:bottom-12 z-40 flex flex-col gap-3">
+
+    <!-- Zoom + -->
+    <p-button
+      icon="pi pi-plus"
+      [rounded]="true"
+      severity="info"
+      (onClick)="acercar()"
+      class="h-8 w-8 md:h-10 md:w-10">
+    </p-button>
+
+    <!-- Zoom - -->
+    <p-button
+      icon="pi pi-minus"
+      [rounded]="true"
+      severity="info"
+      (onClick)="alejar()"
+      class="h-8 w-8 md:h-10 md:w-10">
+    </p-button>
+
+    <!-- Ubicación -->
+    <p-button
+      icon="pi pi-compass"
+      [rounded]="true"
+      severity="info"
+      (onClick)="miUbicacion()"
+      class="h-8 w-8 md:h-10 md:w-10">
+    </p-button>
+
   </div>
-
-  <!-- Botón de ubicación actual -->
-  <p-button
-    icon="pi pi-compass"
-    [rounded]="true"
-    severity="primary"
-    (onClick)="miUbicacion()"
-    class="shadow-xl h-10 w-10 md:h-12 md:w-12" />
-
-</div>
 ```
 
 ---
@@ -688,133 +721,3 @@ ng generate environments
     origin: ['http://localhost:4200'],
   });
 ```
-
-#### Optenemos la lista de colegios : mostrarColegios  
-```javascript
-  // Capa que contendrá todas las geometrías (puntos o polígonos)
-  // LayerGroup permite agrupar múltiples elementos y gestionarlos como una sola capa
-  private geomLayer = L.layerGroup();
-
-  mostrarColegios(): void {
-
-    // Mensaje de depuración para verificar que se ejecuta el método
-    console.log('Obteniendo colegios...');
-    // Llamada al servicio que consulta los datos desde el backend
-    this.mapaServicio.listarEscuelas().pipe(
-      // tap permite ejecutar lógica sin modificar el flujo del observable
-      tap((resp: any) => {
-        // Validamos que la respuesta exista y contenga elementos
-        if (!resp || resp.length === 0) {
-          console.warn('No se encontraron colegios');
-          return;
-        }
-        // Si existen datos, enviamos la información al método que dibuja las geometrías
-        this.dibujarGeometrias(resp);
-      }),
-      // Manejo de errores en la petición
-      catchError((error) => {
-        console.error('Error al obtener colegios:', error);
-        // Retornamos un observable vacío para evitar que la aplicación falle
-        return of([]);
-      }),
-      // finalize se ejecuta siempre al finalizar el observable
-      finalize(() => {
-        console.log("Proceso de carga finalizado");
-      })
-
-    ).subscribe();
-  }
-
-```
-
-#### creamos esa funcion para prueba. dibujarGeometrias
-```javascript
-    dibujarGeometrias(data: any[]): void {
-    // Limpiamos la capa antes de dibujar nuevas geometrías
-    // Esto evita que se dupliquen los elementos si el método se ejecuta varias veces
-    this.geomLayer.clearLayers();
-    // Bounds se usa para calcular la extensión geográfica de todas las geometrías
-    const bounds = L.latLngBounds([]);
-    data.forEach((item: any) => {
-      // Si el registro no tiene geometría se ignora
-      if (!item.geom) return;
-      // Convertimos el campo geom (que viene como string JSON) a objeto
-      const geom = JSON.parse(item.geom);
-      // Tipo de geometría (Point, Polygon, etc.)
-      const tipo = geom.type;
-      // Coordenadas de la geometría
-      const coords = geom.coordinates;
-      // Variable donde se almacenará el objeto gráfico creado
-      let layer;
-      // ==========================
-      // GEOMETRÍA TIPO POINT
-      // ==========================
-      if (tipo === "Point") {
-        // En GeoJSON las coordenadas vienen como [lng, lat]
-        const lng = coords[0];
-        const lat = coords[1];
-        // Leaflet usa el formato [lat, lng]
-        layer = L.marker([lat, lng]);
-        // Extendemos los límites del mapa para incluir este punto
-        bounds.extend([lat, lng]);
-      }
-
-
-      // ==========================
-      // GEOMETRÍA TIPO POLYGON
-      // ==========================
-      if (tipo === "Polygon") {
-        // Convertimos cada coordenada de [lng,lat] a [lat,lng]
-        const polygonCoords = coords[0].map((c: any) => [c[1], c[0]]);
-        // Creamos el polígono en el mapa
-        layer = L.polygon(polygonCoords, {
-          color: "blue",
-          weight: 2
-        });
-
-        // Extendemos los límites del mapa usando cada vértice del polígono
-        polygonCoords.forEach((p: any) => bounds.extend(p));
-      }
-
-
-      // Si se creó correctamente una geometría
-      if (layer) {
-        // Se agrega un popup con información del registro
-        layer.bindPopup(`
-          <b>${item.nombre}</b><br>
-          ${item.direccion ?? ""}
-        `);
-        // Agregamos la geometría al LayerGroup
-        this.geomLayer.addLayer(layer);
-      }
-
-    });
-
-    // Añadimos la capa al mapa
-    this.geomLayer.addTo(this.mapa);
-
-    // Ajustamos el zoom automáticamente para mostrar todas las geometrías
-    if (bounds.isValid()) {
-      this.mapa.fitBounds(bounds, { padding: [40, 40] });
-    }
-
-  }
-```
-### modificando los puntos
-```javascript
-  iconoColegio = L.icon({
-    iconUrl: 'leaflet/colegio.png',
-    iconSize: [35, 35],
-    iconAnchor: [17, 35],
-    popupAnchor: [0, -35]
-  });
-// cambiar aqui
-// Leaflet usa el formato [lat, lng]
-        //layer = L.marker([lat, lng]);
-        layer = L.marker([lat, lng], {
-          icon: this.iconoColegio
-        });
-
-```
-
-
