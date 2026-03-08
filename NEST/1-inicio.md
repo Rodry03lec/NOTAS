@@ -28,7 +28,7 @@ src/
 ```
 ## Para configurar los iconos
 ### *settings.json*
-```
+```javascript
 {
     "material-icon-theme.activeIconPack": "nest"
 }
@@ -37,12 +37,12 @@ src/
 ## Para habilitar global el .env
 ### Instalar 
 #### *Para .env global*
-```
+```javascript
 npm i --save @nestjs/config
 ```
 ### Configurar
 #### *En app.module.ts* dentro de imports
-```
+```javascript
 imports: [
     ConfigModule.forRoot({
       isGlobal: true,
@@ -59,7 +59,7 @@ app.setGlobalPrefix('api');
 # COMO EJEMPLO CREAR MANUALMENTE
 ### *En modules/auth*
 #### *auth.module.ts*
-```
+```javascript
 import { Module } from "@nestjs/common";
 import { AuthController } from "./auth.controller";
 import { AuthService } from "./auth.service";
@@ -73,7 +73,7 @@ export class AuthModule{
 }
 ```
 #### *auth.controller.ts*
-```
+```javascript
 import { Controller, Get } from "@nestjs/common";
 import { AuthService } from "./auth.service";
 
@@ -89,7 +89,7 @@ export class AuthController{
 }
 ```
 #### *auth.service.ts*
-```
+```javascript
 import { Injectable } from "@nestjs/common";
 
 @Injectable()
@@ -101,3 +101,5 @@ export class AuthService{
     }
 }
 ```
+
+
