@@ -62,6 +62,18 @@ npm i -D @types/bcrypt
 import * as bcrypt from 'bcrypt';
 
 ```
+### en .env
+```
+PORT=3000
+
+DB_HOST=localhost
+DB_PORT=5432
+DB_USER=usuario
+DB_PASSWORD=password
+DB_DATABASE=postgisdb
+```
+
+
 
 ## modules/usuarios
 
