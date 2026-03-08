@@ -101,5 +101,23 @@ export class AuthService{
     }
 }
 ```
+### Comandos:
+### Crear un modulo
+```javascript
+nest g module modules/mapa --no-spec
+```
+### Crear un controlador 
+```javascript
+nest g co modules/mapa --no-spec
+```
+### Crear un servicio
+```javascript
+nest g s modules/mapa --no-spec
+```
+### O pueden usar lo que es para resource
+#### porque ya crea: Controller, Service, Module, DTO, Entities
+```javascript
+nest g resource modules/mapa --no-spec
+```
 
 
