@@ -597,23 +597,23 @@ imports: [..., ButtonModule],
 
   miUbicacion() {
 
-    // Usamos la API de geolocalización del navegador
+    // Activa la geolocalización del navegador para intentar obtener la posición del usuario
     this.mapa.locate({
-      enableHighAccuracy: true
+      enableHighAccuracy: true // Solicita al navegador usar GPS o la mayor precisión posible
     });
 
-    // Cuando se encuentra la ubicación
+    // Se ejecuta una sola vez cuando Leaflet logra obtener la ubicación del usuario
     this.mapa.once('locationfound', (e: any) => {
-
-      // Movemos el mapa hacia la ubicación encontrada
+      // Mueve el mapa suavemente hasta las coordenadas encontradas y aplica zoom 20
       this.mapa.flyTo(e.latlng, 20);
-
-      // Agregamos un marcador en la ubicación
+      // Crea un marcador en las coordenadas obtenidas de la geolocalización
       L.marker(e.latlng)
+        // Agrega el marcador al mapa actual
         .addTo(this.mapa)
+        // Asocia un popup al marcador con el texto "Mi ubicación"
         .bindPopup("Mi ubicación")
+        // Abre automáticamente el popup cuando se crea el marcador
         .openPopup();
-
     });
 
   }
