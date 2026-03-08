@@ -8,7 +8,7 @@ npm install pg
 ## Configurar
 ### En database/database.module.ts
 #### cuantas conexiones tendra depende
-```
+```javascript
 import { Global, Module } from "@nestjs/common";
 
 import { Pool } from 'pg';
@@ -17,14 +17,14 @@ import { Pool } from 'pg';
 @Module({
     providers:[
         {
-            provide: 'PG_POOL_C1',
+            provide: 'PG_POOL1',
             useFactory: ()=>{
                 return new Pool({
-                    host: '10.1.102.117',
-                    port: 5432,
-                    user: 'usuario',
-                    password: 'password',
-                    database: 'gisdb'
+                    host: process.env.DB_HOST,
+                    port: Number(process.env.DB_PORT),
+                    user: process.env.DB_USER,
+                    password: process.env.DB_PASSWORD,
+                    database: process.env.DB_DATABASE
                 })
             }
         },
@@ -66,7 +66,7 @@ import * as bcrypt from 'bcrypt';
 ## modules/usuarios
 
 ### dto/create-usuario.dto.ts
-```
+```javascript
 import { IsEmail, IsNotEmpty, IsString, Matches, MaxLength, MinLength } from "class-validator";
 
 // instalar :: npm i --save class-validator class-transformer
