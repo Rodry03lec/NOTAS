@@ -532,24 +532,36 @@ cambiarMapaBase(config: any) {
 
     @for (m of mapas_base; track m.id) {
       <div
-        (click)="cambiarMapaBase(m)"
-        class="relative group cursor-pointer transition-all duration-300"
-        [pTooltip]="m.nombre"
-        tooltipPosition="top">
+        (click)="cambiarMapaBase(m)" <!-- Ejecuta la función cambiarMapaBase cuando el usuario hace clic en el mapa -->
+        class="relative group cursor-pointer transition-all duration-300" <!-- Clases de estilo: posición relativa, comportamiento de grupo para hover, cursor tipo botón y animación -->
+        [pTooltip]="m.nombre" <!-- Tooltip de PrimeNG que muestra el nombre del mapa -->
+        tooltipPosition="top"> <!-- Posición del tooltip encima del elemento -->
 
         <div
-          class="h-14 w-14 md:h-16 md:w-16 rounded-xl border-2 overflow-hidden transition-all shadow-lg group-hover:-translate-y-2"
+          class="h-14 w-14 md:h-16 md:w-16 rounded-xl border-2 overflow-hidden transition-all shadow-lg group-hover:-translate-y-2" 
+          <!-- Contenedor de la miniatura del mapa base con tamaño fijo, bordes redondeados y animación al pasar el mouse -->
+
           [ngClass]="{
-            'border-primary-500 ring-4 ring-primary-500/20': mapaSeleccionadoId === m.id,
-            'border-white': mapaSeleccionadoId !== m.id
+            'border-primary-500 ring-4 ring-primary-500/20': mapaSeleccionadoId === m.id, 
+            <!-- Si este mapa está seleccionado se pinta el borde azul y un anillo alrededor -->
+
+            'border-white': mapaSeleccionadoId !== m.id 
+            <!-- Si no está seleccionado el borde será blanco -->
           }">
 
-          <img [src]="m.imagen" class="w-full h-full object-cover">
+          <img  [src]="m.imagen" <!-- Carga la imagen miniatura del mapa base -->
+            class="w-full h-full object-cover"> <!-- Hace que la imagen ocupe todo el contenedor sin deformarse -->
 
           <!-- Check solo en el mapa activo -->
-          @if (mapaSeleccionadoId === m.id) {
+          @if (mapaSeleccionadoId === m.id) { 
+            <!-- Condición de Angular: solo se muestra si este mapa es el seleccionado -->
+
             <div class="absolute inset-0 bg-primary-500/20 flex items-center justify-center">
+              <!-- Capa semitransparente encima de la imagen para indicar que está activo -->
+
               <i class="pi pi-check text-white bg-primary-500 rounded-full p-1 text-[8px]"></i>
+              <!-- Icono de check de PrimeNG que indica que este mapa base está seleccionado -->
+
             </div>
           }
 
