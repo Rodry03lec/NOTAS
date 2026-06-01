@@ -1,0 +1,79 @@
+🎁 Comandos usados en el video (deja tu like):
+===================================================
+COMANDOS COMPLETOS - CLAUDE CODE GRATIS EN WINDOWS
+===================================================
+ 
+PASO 1 - INSTALAR BUN
+===================================================
+powershell -c "irm bun.sh/install.ps1 | iex"
+bun --version
+ 
+(Cierra PowerShell y abre uno nuevo si no reconoce bun)
+ 
+PASO 2 - CLONAR REPOSITORIO
+===================================================
+cd C:\
+git clone https://gitlab.com/khaled7535043/open-claude-code.git
+cd open-claude-code
+ 
+PASO 3 - INSTALAR DEPENDENCIAS
+===================================================
+bun install
+ 
+PASO 4 - COMPILAR
+===================================================
+bun run build
+ 
+(Espera hasta ver: Build succeeded: dist/cli.js)
+ 
+PASO 5 - CONFIGURAR OPENROUTER
+===================================================
+setx CLAUDE_CODE_USE_OPENROUTER "1"
+setx OPENROUTER_API_KEY "tu-clave-aqui"
+ 
+(Cierra PowerShell completamente despues de esto)
+ 
+PASO 6 - EJECUTAR
+===================================================
+cd C:\open-claude-code
+bun dist/cli.js
+ 
+PASO 7 - SELECCIONAR MODELO (dentro de la app)
+===================================================
+/model
+(usa las flechas y selecciona MiniMax o GLM 4.5 Air)
+ 
+===================================================
+COMANDOS UTILES DENTRO DE LA APP
+===================================================
+/model          - cambiar modelo de IA
+/status         - ver estado actual
+/exit           - salir de la app
+/help           - ver todos los comandos
+/plan           - activar modo planificacion
+ 
+===================================================
+COMANDOS PARA MANTENIMIENTO
+===================================================
+ 
+ACTUALIZAR:
+cd C:\open-claude-code
+git pull origin main
+bun install
+bun run build
+ 
+ELIMINAR Y REINSTALAR DESDE CERO:
+Remove-Item -Recurse -Force C:\open-claude-code
+cd C:\
+git clone https://gitlab.com/khaled7535043/open-claude-code.git
+cd open-claude-code
+bun install
+bun run build
+ 
+VER VARIABLES DE ENTORNO GUARDADAS:
+[System.Environment]::GetEnvironmentVariable("OPENROUTER_API_KEY", "User")
+[System.Environment]::GetEnvironmentVariable("CLAUDE_CODE_USE_OPENROUTER", "User")
+ 
+CAMBIAR CLAVE API:
+setx OPENROUTER_API_KEY "tu-nueva-clave-aqui"
+(Cierra y abre PowerShell para que tome efecto)
